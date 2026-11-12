@@ -111,10 +111,38 @@ a{color:var(--brand)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) a{color:var(--brand-muted)}}
 @media (prefers-reduced-motion:reduce){.chev{transition:none}}
 @media (max-width:520px){.doc{flex-wrap:wrap}.doc .dt{flex-basis:calc(100% - 40px)}.doc .tpl{margin-left:32px}}
+
+/* Preview modal */
+.pv{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.pv-backdrop{position:absolute;inset:0;background:rgba(8,20,19,.62)}
+.pv-box{position:relative;background:var(--surface);color:var(--ink);border-radius:16px;width:min(860px,100%);max-height:100%;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.pv-head{display:flex;gap:12px;align-items:flex-start;padding:16px 18px;border-bottom:1px solid var(--line)}
+.pv-ht{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.pv-ht h2{font-size:19px}
+.pv-ht span{font-size:13px}
+.pv-x{font:inherit;font-size:16px;background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:8px;width:36px;height:36px;cursor:pointer;flex:none}
+.pv-body{overflow-y:auto;background:var(--bg);padding:18px}
+#pv-pages{display:flex;flex-direction:column;gap:18px;align-items:center}
+#pv-pages figure{margin:0;display:flex;flex-direction:column;gap:6px;align-items:center;width:100%}
+#pv-pages img{width:100%;max-width:720px;height:auto;background:#fff;border:1px solid var(--line);border-radius:4px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+#pv-pages figcaption{font-size:12px;color:var(--muted)}
+.pv-foot{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;padding:14px 18px;border-top:1px solid var(--line)}
+.pv-note{font-size:12px;flex:1 1 220px}
+a.btn{text-decoration:none;display:inline-block}
+@media (max-width:520px){.pv{padding:0}.pv-box{border-radius:0;height:100%}.pv-body{padding:10px}}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<div id="pv" class="pv" hidden role="dialog" aria-modal="true" aria-labelledby="pv-title">
+<div class="pv-backdrop" data-act="pvclose"></div>
+<div class="pv-box">
+<div class="pv-head"><div class="pv-ht"><h2 id="pv-title">Templat</h2><span id="pv-meta" class="muted"></span></div><button type="button" class="pv-x" id="pv-close" data-act="pvclose" aria-label="Tutup">✕</button></div>
+<div class="pv-body" id="pv-body"><div id="pv-pages"></div></div>
+<div class="pv-foot"><span class="muted pv-note">Pratonton ini anggaran. Fail sebenar mungkin sedikit berbeza susun aturnya.</span><span class="row"><button type="button" class="btn ghost" data-act="pvclose">Tutup</button><a class="btn" id="pv-dl" href="#" download>Muat turun</a></span></div>
+</div>
+</div>
+
 <script id="page-script">
 (function(){
 var DOCS={
@@ -125,15 +153,15 @@ var DOCS={
 };
 var ROUTES={hema:"Hantar kepada HEMA","hep-k":"HEP, melibatkan kewangan","hep-t":"HEP, tidak melibatkan kewangan"};
 var FILES={
-  kk:{f:"kertas-kerja.docx",n:"SAMPLE KERTAS KERJA PROGRAM [NAMA].docx"},
-  kkhema:{f:"contoh-kertas-kerja-hema.pdf",n:"Contoh Kertas Kerja HEMA - Harmoni Vibe.pdf",label:"Contoh (PDF)"},
-  skp:{f:"surat-kelulusan-peruntukan.docx",n:"SAMPLE SURAT PERMOHONAN KELULUSAN DAN PERUNTUKAN PROGRAM [NAMA].docx"},
-  ska:{f:"surat-kelulusan-luar-uitm.docx",n:"SAMPLE SURAT KELULUSAN PROGRAM LUAR UITM [NAMA].docx"},
-  slkk:{f:"surat-lewat-kertas-kerja.docx",n:"SAMPLE SURAT PERNYATAAN SEBAB KELEWATAN KERTAS KERJA [NAMA].docx"},
-  poster:{f:"contoh-poster.jpg",n:"Contoh Poster Harmoni.jpg",label:"Contoh (gambar)"},
-  lbg:{f:"laporan-bergambar.docx",n:"SAMPLE LAPORAN BERGAMBAR PROGRAM [NAMA].docx"},
-  lkew:{f:"laporan-implikasi-kewangan.docx",n:"SAMPLE LAPORAN IMPLIKASI KEWANGAN PROGRAM [NAMA].docx"},
-  slsp:{f:"surat-lewat-surat-program.docx",n:"SAMPLE SURAT PERNYATAAN SEBAB KELEWATAN SURAT-SURAT PROGRAM [NAMA].docx"}
+  kk:{f:"kertas-kerja.docx",n:"SAMPLE KERTAS KERJA PROGRAM [NAMA].docx",pv:"kertas-kerja",pg:7},
+  kkhema:{f:"contoh-kertas-kerja-hema.pdf",n:"Contoh Kertas Kerja HEMA - Harmoni Vibe.pdf",pv:"contoh-kertas-kerja-hema",pg:8},
+  skp:{f:"surat-kelulusan-peruntukan.docx",n:"SAMPLE SURAT PERMOHONAN KELULUSAN DAN PERUNTUKAN PROGRAM [NAMA].docx",pv:"surat-kelulusan-peruntukan",pg:2},
+  ska:{f:"surat-kelulusan-luar-uitm.docx",n:"SAMPLE SURAT KELULUSAN PROGRAM LUAR UITM [NAMA].docx",pv:"surat-kelulusan-luar-uitm",pg:2},
+  slkk:{f:"surat-lewat-kertas-kerja.docx",n:"SAMPLE SURAT PERNYATAAN SEBAB KELEWATAN KERTAS KERJA [NAMA].docx",pv:"surat-lewat-kertas-kerja",pg:2},
+  poster:{f:"contoh-poster.jpg",n:"Contoh Poster Harmoni.jpg",label:"Contoh",img:"templates/contoh-poster.jpg"},
+  lbg:{f:"laporan-bergambar.docx",n:"SAMPLE LAPORAN BERGAMBAR PROGRAM [NAMA].docx",pv:"laporan-bergambar",pg:3},
+  lkew:{f:"laporan-implikasi-kewangan.docx",n:"SAMPLE LAPORAN IMPLIKASI KEWANGAN PROGRAM [NAMA].docx",pv:"laporan-implikasi-kewangan",pg:1},
+  slsp:{f:"surat-lewat-surat-program.docx",n:"SAMPLE SURAT PERNYATAAN SEBAB KELEWATAN SURAT-SURAT PROGRAM [NAMA].docx",pv:"surat-lewat-surat-program",pg:2}
 };
 
 
@@ -170,9 +198,23 @@ function allItems(a){var r=[];steps(a).forEach(function(s){r=r.concat(s.items)})
 
 function tplBtn(key){
   var f=FILES[key];
-  if(f)return '<a class="tpl" href="templates/'+f.f+'" download="'+esc(f.n)+'"'+(/\.(pdf|jpg)$/.test(f.f)?' target="_blank" rel="noopener"':'')+'>'+(f.label||"Muat turun templat")+' ↓</a>';
+  if(f)return '<button type="button" class="tpl" data-act="pv" data-k="'+key+'">'+(f.label?"Lihat contoh":"Lihat templat")+'</button>';
   return '<span class="tpl none">Tiada templat</span>';
 }
+function pages(f){var r=[];if(f.img)r.push(f.img);else for(var i=1;i<=f.pg;i++)r.push("preview/"+f.pv+"-"+i+".jpg");return r}
+var lastFocus=null;
+function openPreview(key,from){
+  var f=FILES[key],m=document.getElementById("pv");if(!f||!m)return;lastFocus=from||null;
+  var ext=f.f.split(".").pop().toUpperCase();
+  document.getElementById("pv-title").textContent=DOCS[key];
+  document.getElementById("pv-meta").textContent=(f.img?"Gambar":ext==="PDF"?"Contoh PDF":"Templat Word")+(f.pg?" · "+f.pg+" halaman":"");
+  var dl=document.getElementById("pv-dl");dl.href="templates/"+f.f;dl.setAttribute("download",f.n);
+  dl.textContent="Muat turun "+(f.img?"gambar":ext==="DOCX"?"(Word)":"("+ext+")");
+  document.getElementById("pv-pages").innerHTML=pages(f).map(function(src,i,a){return '<figure><img src="'+src+'" alt="'+esc(DOCS[key])+', halaman '+(i+1)+' daripada '+a.length+'" loading="lazy">'+(a.length>1?'<figcaption>Halaman '+(i+1)+' / '+a.length+'</figcaption>':'')+'</figure>'}).join("");
+  document.getElementById("pv-body").scrollTop=0;
+  m.hidden=false;document.body.style.overflow="hidden";document.getElementById("pv-close").focus();
+}
+function closePreview(){var m=document.getElementById("pv");if(!m||m.hidden)return;m.hidden=true;document.body.style.overflow="";if(lastFocus&&document.contains(lastFocus))lastFocus.focus()}
 function skipNote(a,s){
   if(!isHep(a))return '<p class="skip">Langkah 2 hingga 4 tidak diperlukan kerana kertas kerja dihantar kepada HEMA.</p>';
   if(!a.transport)return '<p class="skip">Langkah 4 (pengangkutan UiTM) tidak diperlukan.</p>';
@@ -297,6 +339,8 @@ function save(){
 document.addEventListener("click",function(ev){
   var t=ev.target.closest("[data-act]");if(!t)return;var act=t.getAttribute("data-act");
   if(act==="tick")return;
+  if(act==="pv"){openPreview(t.getAttribute("data-k"),t);return}
+  if(act==="pvclose"){closePreview();return}
   if(act==="ans"){var k=t.getAttribute("data-k"),v=t.getAttribute("data-v");ui.answers[k]=k==="route"?v:v==="true";lsSet("hp-answers",ui.answers);render()}
   else if(act==="newOpen"){ui.newOpen=true;render();var n=document.getElementById("np-name");if(n)n.focus()}
   else if(act==="newClose"){ui.newOpen=false;render()}
@@ -327,6 +371,7 @@ document.addEventListener("change",function(ev){
   p.done=p.done||{};var i=t.getAttribute("data-i");if(t.checked)p.done[i]=true;else delete p.done[i];
   save();
 });
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closePreview()});
 window.addEventListener("hashchange",function(){statusMsg="";render()});
 render();
 
